@@ -51,19 +51,32 @@ export default {
         //         yPositions.push(j*canvas.height/ballNumRoot + radius);
         //     }
         // }
+
+        function rotateShape(angle, centre, points){
+            // console.log(angle, centre, points);
+            for(let i = 0; i < 3; i++){
+                points[i] = [points[i][0]*Math.cos(angle) - points[i][1]*Math.sin(angle), points[i][0]*Math.sin(angle) + points[i][1]*Math.cos(angle)];
+                points[i][0] = centre[0] + points[i][0];
+                points[i][1] = centre[1] + points[i][1];
+            }
+            return points;
+        }
         
         function Ball(x, y) {
             this.x = x;
             this.y = y;
-            
-            let angle = Math.atan(x,y);
 
-            this.dx = Math.sin(angle);
-            this.dy = Math.cos(angle);
+            this.dx = 0;
+            this.dy = 0.5;
 
             this.draw = function() {
+                let points = rotateShape(this.angle, [this.x, this.y], [[0, radius], [-0.5*radius, -radius], [0.5*radius, -radius]]);
+
                 c.beginPath();
-                c.arc(this.x, this.y, radius, 0, Math.PI * 2);
+                c.moveTo(points[0][0], points[0][1]);
+                c.lineTo(points[1][0], points[1][1]);
+                c.lineTo(points[2][0], points[2][1]);
+                //c.arc(this.x, this.y, radius, 0, Math.PI * 2);
                 c.fillStyle = 'blue';
                 c.fill(); 
             }
@@ -78,6 +91,7 @@ export default {
 
                 this.x += this.dx;
                 this.y += this.dy;
+                this.angle = -Math.atan2(this.dx,this.dy);
                 
                 let dist = Math.pow(Math.pow(this.x-massCentre[0] , 2) + Math.pow(this.y-massCentre[1], 2), 0.5);
                 //let angle = Math.atan2(this.y-massCentre[1], this.x-massCentre[0]);
@@ -94,9 +108,9 @@ export default {
         }
         
         
-        let radius = 1;
+        let radius = 2;
         let ballArray = [];
-        let ballNumRoot = 20;
+        let ballNumRoot = 70;
         let massCentre = [200, 200];
 
         for (let i = 0; i < ballNumRoot; i++){
