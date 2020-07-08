@@ -66,8 +66,15 @@ export default {
             this.x = x;
             this.y = y;
 
-            this.dx = 0;
-            this.dy = 0.5;
+            this.dist = Math.pow(Math.pow(this.x-massCentre[0] , 2) + Math.pow(this.y-massCentre[1], 2), 0.5);
+
+            //make all orbit in circular orbits in same direction initially 
+            if(this.x - massCentre[0] !== 0){
+                this.dy = -initialVel*Math.abs(Math.pow(this.dist , -2))*(massCentre[0]-this.x);
+            } else {this.dy = 0;}
+            if(this.y - massCentre[1] !== 0){
+                this.dx = initialVel*Math.abs(Math.pow(this.dist , -2))*(massCentre[1]-this.y);
+            } else {this.dx = 0;}
 
             this.draw = function() {
                 let points = rotateShape(this.angle, [this.x, this.y], [[0, radius], [-0.5*radius, -radius], [0.5*radius, -radius]]);
@@ -94,7 +101,6 @@ export default {
                 this.angle = -Math.atan2(this.dx,this.dy);
                 
                 let dist = Math.pow(Math.pow(this.x-massCentre[0] , 2) + Math.pow(this.y-massCentre[1], 2), 0.5);
-                //let angle = Math.atan2(this.y-massCentre[1], this.x-massCentre[0]);
 
                 if(this.x - massCentre[0] !== 0){
                     this.dx += 1*Math.abs(Math.pow(dist , -2))*(massCentre[0]-this.x);
@@ -110,8 +116,9 @@ export default {
         
         let radius = 2;
         let ballArray = [];
-        let ballNumRoot = 70;
-        let massCentre = [200, 200];
+        let ballNumRoot = 40;
+        let massCentre = [canvas.width/2, canvas.height/2];
+        let initialVel = 100;
 
         for (let i = 0; i < ballNumRoot; i++){
             for (let j = 0; j < ballNumRoot; j++){
