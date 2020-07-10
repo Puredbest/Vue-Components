@@ -54,7 +54,7 @@ export default {
         //         yPositions.push(j*canvas.height/ballNumRoot + radius);
         //     }
         // }
-        var mouse = {
+        let mouse = {
             x: undefined,
             y: undefined
         }
@@ -68,9 +68,13 @@ export default {
 
             clearInterval(timer);
             timer = setInterval(function(){mouse.x = undefined; mouse.y = undefined}, 10000);
-            
-
         })
+
+        // parent.addEventListener('onmouseleave', function(){
+        //     console.log('mouse out');
+        //     mouse.x = undefined;
+        //     mouse.y = undefined;
+        // })
 
 
         function rotateShape(angle, centre, points){
@@ -139,9 +143,7 @@ export default {
                 }
 
                 //interactivity with mouse
-                if(mouse.x - this.x < mouseRadius && mouse.x - this.x > -mouseRadius
-                && mouse.y - this.y < mouseRadius && mouse.y - this.y > -mouseRadius
-                ){
+                if(Math.pow((Math.pow((mouse.x-this.x),2) + Math.pow((mouse.y-this.y),2)),1/2) < mouseRadius){
                     if(this.radius < maxRadius){
                         this.radius += 0.5;
                     }
@@ -158,7 +160,7 @@ export default {
         
         let radius = canvas.height/150;
         let maxRadius = 30;
-        let mouseRadius = 50;
+        let mouseRadius = 55;
         let ballArray = [];
         let ballNumRoot = 40;
 
