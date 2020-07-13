@@ -1,80 +1,46 @@
 <template>
-    <div id="parent" style="height:70vh;">
-         <canvas id="front-animation" style="width:100%; height:100%"></canvas>
+    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave">
+         <canvas id="front-animation" style="width:100%; height:100%" ></canvas>
     </div>
 </template>
 
 <script>
 export default {
     name: 'iv-front-page',
+    props: {
+        mouse: {
+            default: {
+                x: undefined,
+                y: undefined
+            }
+        }
+    },
+    methods: {
+        mouseOver(event){
+            console.log(event.x, event.y);
+            this.mouse.x = event.x;
+            this.mouse.y = event.y;
+        },
+        mouseLeave(){
+            console.log('left');
+            this.mouse.x = undefined;
+            this.mouse.y = undefined;
+        }
+    },
     mounted(){
         let canvas = document.querySelector('canvas');
-        // canvas.width = window.innerWidth*0.65;
-        // canvas.height = window.innerHeight*0.8;
         let parent = document.getElementById('parent');
         canvas.width = parent.offsetWidth;
         canvas.height = parent.offsetHeight;
+        let rect = parent.getBoundingClientRect();
+
+
+        let vm = this;
+        let mouseX = this.mouse.x - rect.left;
+        let mouseY = this.mouse.y - rect.top;
+
 
         let c = canvas.getContext('2d');
-
-        // c.fillStyle = 'rgba(255,0,0,0.5)';
-        // c.fillRect(100,100, 100, 100);
-        // c.fillStyle = 'rgba(0,0,255,0.5)';
-        // c.fillRect(150,150, 100, 100);
-        // c.fillStyle = 'rgba(0,255,0,0.5)';
-        // c.fillRect(300,0, 100, 100);
-
-        // c.beginPath();
-        // c.moveTo(50, 300);
-        // c.lineTo(300, 100);
-        // c.lineTo(400,300);
-        // c.strokeStyle = 'rgba(255,0,255,0.5)';
-        // c.stroke();
-
-        // for(let i = 0; i < 10; i++){
-        //     let x = Math.random() * window.innerWidth * 0.65;
-        //     let y = Math.random() * window.innerHeight * 0.8;
-        //     let r = Math.random() * 255;
-        //     let g = Math.random() * 255;
-        //     let b = Math.random() * 255;
-
-        //     c.beginPath();
-        //     c.arc(x,y, 30, 0, Math.PI * 2);
-        //     c.strokeStyle = 'rgb(' + r + ',' + g + ',' + b +')';
-        //     c.stroke();
-        // 
-
-        // let radius = 5;
-        // let ballNumRoot = 2;
-        // let xPositions = [];
-        // let yPositions = [];
-        // for (let i = 0; i < ballNumRoot; i++){
-        //     for (let j = 0; j < ballNumRoot; j++){
-        //         xPositions.push(i*canvas.width/ballNumRoot + radius);
-        //         yPositions.push(j*canvas.height/ballNumRoot + radius);
-        //     }
-        // }
-        let mouse = {
-            x: undefined,
-            y: undefined
-        }
-        
-        let rect = parent.getBoundingClientRect();
-        let timer;
-
-        parent.addEventListener('mousemove', function(event){
-            mouse.x = event.x - rect.left;
-            mouse.y = event.y - rect.top;
-
-            clearInterval(timer);
-            timer = setInterval(function(){mouse.x = undefined; mouse.y = undefined}, 10000);
-        })
-
-        // parent.addEventListener('onmouseleave', function(){
-        //     console.log('mouse out');
-        //     mouse.x = undefined;
-        //     mouse.y = undefined;
-        // })
 
 
         function rotateShape(angle, centre, points){
@@ -112,14 +78,14 @@ export default {
                 c.moveTo(points[0][0], points[0][1]);
                 c.lineTo(points[1][0], points[1][1]);
                 c.lineTo(points[2][0], points[2][1]);
-                //c.fillStyle = 'blue';
                 let b = 255*Math.pow(Math.pow(this.dx,2) + Math.pow(this.dy, 2), 0.25);
-                //console.log(b);
                 c.fillStyle = 'rgb('+ b + ',' + b + ',255)';
                 c.fill(); 
             }
 
             this.update = function() {
+
+                // Bounce off sides
                 // if (this.x + radius > canvas.width || this.x - radius < 0){
                 //     this.dx = -this.dx;
                 // }
@@ -143,7 +109,7 @@ export default {
                 }
 
                 //interactivity with mouse
-                if(Math.pow((Math.pow((mouse.x-this.x),2) + Math.pow((mouse.y-this.y),2)),1/2) < mouseRadius){
+                if(Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < mouseRadius){
                     if(this.radius < maxRadius){
                         this.radius += 0.5;
                     }
@@ -182,6 +148,9 @@ export default {
             requestAnimationFrame(animate);
 
             c.clearRect(0,0, innerWidth, innerHeight);
+
+            mouseX = vm.mouse.x - rect.left;
+            mouseY = vm.mouse.y - rect.top;
 
             for (let i = 0; i < ballArray.length; i++){
                 ballArray[i].update();
