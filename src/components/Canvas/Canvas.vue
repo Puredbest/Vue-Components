@@ -13,16 +13,14 @@ export default {
                 x: undefined,
                 y: undefined
             }
-        }
+        },
     },
     methods: {
         mouseOver(event){
-            console.log(event.x, event.y);
             this.mouse.x = event.x;
             this.mouse.y = event.y;
         },
         mouseLeave(){
-            console.log('left');
             this.mouse.x = undefined;
             this.mouse.y = undefined;
         }
@@ -78,7 +76,7 @@ export default {
                 c.moveTo(points[0][0], points[0][1]);
                 c.lineTo(points[1][0], points[1][1]);
                 c.lineTo(points[2][0], points[2][1]);
-                let b = 255*Math.pow(Math.pow(this.dx,2) + Math.pow(this.dy, 2), 0.25);
+                let b = 255*Math.pow(Math.pow(this.dx,2) + Math.pow(this.dy, 2), 0.4);
                 c.fillStyle = 'rgb('+ b + ',' + b + ',255)';
                 c.fill(); 
             }
@@ -100,12 +98,12 @@ export default {
                 for(let i = 0; i < massCentres.length; i++){
                     let dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
 
-                    if(this.x - massCentres[i][0] !== 0){
+                    //if(this.x - massCentres[i][0] !== 0){
                         this.dx += massCentres[i][2]*Math.abs(Math.pow(dist , -2))*(massCentres[i][0]-this.x);
-                    }
-                    if(this.y - massCentres[i][1] !== 0){
+                    //}
+                    //if(this.y - massCentres[i][1] !== 0){
                         this.dy += massCentres[i][2]*Math.abs(Math.pow(dist , -2))*(massCentres[i][1]-this.y);
-                    }
+                    //}
                 }
 
                 //interactivity with mouse
@@ -128,7 +126,7 @@ export default {
         let maxRadius = 30;
         let mouseRadius = 55;
         let ballArray = [];
-        let ballNumRoot = 40;
+        let ballNumRoot = 30;
 
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
