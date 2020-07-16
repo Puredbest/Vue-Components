@@ -62,11 +62,11 @@ export default {
 
             for(let i = 0; i < massCentres.length; i++){  
                 this.dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
-                this.dy += -initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -2))*(massCentres[i][0]-this.x);
+                this.dy += -initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -3))*(massCentres[i][0]-this.x);
             }
             for(let i = 0; i < massCentres.length; i++){
                 this.dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
-                this.dx += initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -2))*(massCentres[i][1]-this.y);
+                this.dx += initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -3))*(massCentres[i][1]-this.y);
             }
 
             this.draw = function() {
@@ -99,10 +99,10 @@ export default {
                     let dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
 
                     //if(this.x - massCentres[i][0] !== 0){
-                        this.dx += massCentres[i][2]*Math.abs(Math.pow(dist , -2))*(massCentres[i][0]-this.x);
+                        this.dx += massCentres[i][2]*Math.abs(Math.pow(dist , -3))*(massCentres[i][0]-this.x);
                     //}
                     //if(this.y - massCentres[i][1] !== 0){
-                        this.dy += massCentres[i][2]*Math.abs(Math.pow(dist , -2))*(massCentres[i][1]-this.y);
+                        this.dy += massCentres[i][2]*Math.abs(Math.pow(dist , -3))*(massCentres[i][1]-this.y);
                     //}
                 }
 
@@ -130,8 +130,8 @@ export default {
 
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
-        let massCentres = [[canvas.width/2, canvas.height/2 , 0.4]];
-        let initialVel = 50;
+        let massCentres = [[canvas.width/2, canvas.height/2 , 30]];
+        let initialVel = 500;
 
         for (let i = 0; i < ballNumRoot; i++){
             for (let j = 0; j < ballNumRoot; j++){
