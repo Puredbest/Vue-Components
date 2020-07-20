@@ -32,11 +32,12 @@ export default {
         },
         activateSelect(){
             this.velocitySelect = true;
-            console.log('activated');
+            //this.velocitySelect = false;
+            console.log('activated', this.velocitySelect);
         },
         cancelSelect(){
             this.velocitySelect = false;
-            console.log('released');
+            console.log('deactivated', this.velocitySelect);
         }
     },
     mounted(){
@@ -45,7 +46,6 @@ export default {
         canvas.width = parent.offsetWidth;
         canvas.height = parent.offsetHeight;
         let rect = parent.getBoundingClientRect();
-
 
         let vm = this;
         let mouseX = this.mouse.x - rect.left;
@@ -72,6 +72,8 @@ export default {
             this.y = y;
             this.radius = defaultRadius;
             this.pathIndex = 0;
+            this.velocitySelect = false;
+            this.timeSinceClick = 10;
 
             //make all orbit in circular orbits in same direction initially 
             this.dx = 0;
@@ -95,7 +97,6 @@ export default {
                 this.scale = 1;
                 this.closedPath = true;
                 let reverseMultiplier = 1;
-                //c.scale(0.5,0.5);
                 console.log('path drawing');
 
                 while(Math.pow((Math.pow(this.x-currentPos[0], 2) + Math.pow(this.y-currentPos[1],2)),0.5) > 1 || iterations < 100){
@@ -172,9 +173,12 @@ export default {
                 
                 if(this.velocitySelect){
                     c.beginPath();
-                    c.arc(this.x, this.y, this.radius*0.5, 0, 2*Math.PI);
+                    c.arc(this.x, this.y, this.radius*1.5, 0, 2*Math.PI);
                     c.fillStyle = 'rgb(0,255,0)';
                     c.fill();
+
+                    // c.beginPath();
+                    // c.moveTo(this.x)
                 }
 
                 
@@ -184,36 +188,36 @@ export default {
 
                 this.x = this.pathCoords[this.pathIndex][0];
                 this.y = this.pathCoords[this.pathIndex][1];
-
-                this.pathIndex += vm.animationSpeed;
+                
+                if(!this.velocitySelect){
+                    this.pathIndex += vm.animationSpeed;
+                }
                 if(this.pathIndex >= this.pathCoords.length){
                     this.pathIndex=0;
                 }
 
                 //interactivity with mouse
-                if(Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < mouseRadius){
-                    if(this.radius < maxRadius){
-                        this.radius += 0.5;
-                    }
-                } else if (this.radius > defaultRadius) {
-                    this.radius -= 0.5;
-                }
+                // if(Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < mouseRadius){
+                //     if(this.radius < maxRadius){
+                //         this.radius += 0.5;
+                //     }
+                // } else if (this.radius > defaultRadius) {
+                //     this.radius -= 0.5;
+                // }
                 
-                if(vm.animationSpeed != 0){ 
-                    this.velocitySelect = false;
-                }
-
-                if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < mouseRadius){
-                    vm.animationSpeed = 0;
-                    this.velocitySelect = true;
-                }
-
+                if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5 && this.timeSinceClick > 20){
+                    this.timeSinceClick = 0;
+                    this.velocitySelect = !this.velocitySelect;
+                    console.log('velocitySelect', this.velocitySelect);
+                } 
+                
+                this.timeSinceClick += 1; 
                 this.draw();
             }
         }
         
-        let maxRadius = 30;
-        let mouseRadius = 55;
+        //let maxRadius = 30;
+        //let mouseRadius = 55;
         let ballArray = [];
 
         // [[x,y, mass]]
@@ -221,7 +225,7 @@ export default {
         let massCentres = [[0, 0 , 100]];
         let initialVel = 1;
 
-        ballArray.push(new Ball(canvas.width/3, canvas.height/3, 5));
+        ballArray.push(new Ball(canvas.width/3, canvas.height/3, 10));
         for(let i = 0; i < ballArray.length; i++){
             ballArray[i].path();
             // let xScale = Math.max(ballArray[i].pathCoords[0])/canvas.width;
@@ -263,10 +267,10 @@ export default {
                 c.fill();
             }
 
-            c.beginPath();
-            c.arc(mouseX, mouseY, 20, 0, Math.PI * 2);
-            c.fillStyle = "black";
-            c.fill();
+            // c.beginPath();
+            // c.arc(mouseX, mouseY, 20, 0, Math.PI * 2);
+            // c.fillStyle = "black";
+            // c.fill();
             
             // c.beginPath();
             // c.arc(2316, 669, 500, 0, Math.PI * 2); 
@@ -276,6 +280,7 @@ export default {
         }
 
         animate();
+
     }
 
 }
