@@ -53,6 +53,8 @@ export default {
 
 
         let c = canvas.getContext('2d');
+        //centre about x=0, y=0
+        c.translate(canvas.width/2, canvas.height/2);
 
 
         // function rotateShape(angle, centre, points){
@@ -98,23 +100,17 @@ export default {
 
                 while(Math.pow((Math.pow(this.x-currentPos[0], 2) + Math.pow(this.y-currentPos[1],2)),0.5) > 1 || iterations < 100){
                     
-                    if(currentPos[0] < (canvas.width - canvas.width*(1/this.scale))*(1/this.scale) || currentPos[0] > canvas.width*(1/this.scale)*(1/this.scale)|| currentPos[1] < (canvas.height - canvas.height*(1/this.scale))*(1/this.scale) || currentPos[1] > canvas.height*(1/this.scale)*(1/this.scale)){
+                    if(currentPos[0] < -canvas.width*(1/this.scale)/2 || currentPos[0] > canvas.width*(1/this.scale)/2 || currentPos[1] < -canvas.height*(1/this.scale)/2 || currentPos[1] > canvas.height*(1/this.scale)/2){
                         
                         console.log('scale = ', this.scale);
                         console.log(currentPos[0], (canvas.width - canvas.width*(1/this.scale)), canvas.width*(1/this.scale));
                         console.log(currentPos[1], (canvas.height - canvas.height*(1/this.scale)) , canvas.height*(1/this.scale));
                         
-                        c.translate(canvas.width/4, canvas.height/4);
+                        c.scale((1/this.scale), (1/this.scale));
+                        // c.translate(canvas.width/4, canvas.height/4);
                         this.scale = this.scale/2;
                         c.scale(this.scale, this.scale);
-                        
-                        //console.log('newScale = ', canvas.width/currentPos[0]);
-                        // this.scale = Math.pow(Math.max(currentPos[0]/(canvas.width) , currentPos[1]/(canvas.height)), -1);
-                        
-                        //console.log('scale =', this.scale);
-                        //c.scale(Math.pow(this.scale, 1), Math.pow(this.scale,1));
-                        //console.log(Math.pow(this.scale, -1));
-                        //console.log('rescale');
+
                     }
 
 
@@ -166,13 +162,20 @@ export default {
                 if(this.closedPath){
                     c.lineTo(this.pathCoords[0][0], this.pathCoords[0][1]);
                 }
-                c.lineWidth = 2;
+                c.lineWidth = 2*(1/this.scale);
                 c.stroke();
 
                 c.beginPath();
                 c.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
                 c.fillStyle = 'rgb(0,0,255)';
-                c.fill(); 
+                c.fill();
+                
+                if(this.velocitySelect){
+                    c.beginPath();
+                    c.arc(this.x, this.y, this.radius*0.5, 0, 2*Math.PI);
+                    c.fillStyle = 'rgb(0,255,0)';
+                    c.fill();
+                }
 
                 
             }
@@ -195,9 +198,14 @@ export default {
                 } else if (this.radius > defaultRadius) {
                     this.radius -= 0.5;
                 }
+                
+                if(vm.animationSpeed != 0){ 
+                    this.velocitySelect = false;
+                }
 
                 if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < mouseRadius){
-                    vm.animationSpeed = 0; 
+                    vm.animationSpeed = 0;
+                    this.velocitySelect = true;
                 }
 
                 this.draw();
@@ -210,8 +218,8 @@ export default {
 
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
-        let massCentres = [[canvas.width/2, canvas.height/2 , 100]];
-        let initialVel = 1.3;
+        let massCentres = [[0, 0 , 100]];
+        let initialVel = 1;
 
         ballArray.push(new Ball(canvas.width/3, canvas.height/3, 5));
         for(let i = 0; i < ballArray.length; i++){
@@ -223,26 +231,26 @@ export default {
             // console.log(scale);
             // c.scale(scale,scale);
         }
-        
 
         function animate() {
             requestAnimationFrame(animate);
 
             for (let i = 0; i < ballArray.length; i++){    
-                c.clearRect((canvas.width-canvas.width*(1/ballArray[i].scale))*(1/ballArray[i].scale),(canvas.height-canvas.height*(1/ballArray[i].scale))*(1/ballArray[i].scale), canvas.width*(1/ballArray[i].scale)*2*(1/ballArray[i].scale), canvas.height*(1/ballArray[i].scale)*2*(1/ballArray[i].scale));
-            //     bounding box
-            //     c.beginPath();
-            //     c.moveTo((canvas.width - canvas.width*(1/ballArray[i].scale))*(1/ballArray[i].scale), (canvas.height - canvas.height*(1/ballArray[i].scale))*(1/ballArray[i].scale));
-            //     c.lineTo(canvas.width*(1/ballArray[i].scale)*(1/ballArray[i].scale), (canvas.height - canvas.height*(1/ballArray[i].scale))*(1/ballArray[i].scale));
-            //     c.lineTo(canvas.width*(1/ballArray[i].scale)*(1/ballArray[i].scale), canvas.height*(1/ballArray[i].scale)*(1/ballArray[i].scale));
-            //     c.lineTo((canvas.width - canvas.width*(1/ballArray[i].scale))*(1/ballArray[i].scale), canvas.height*(1/ballArray[i].scale)*(1/ballArray[i].scale));
-            //     c.lineTo((canvas.width - canvas.width*(1/ballArray[i].scale))*(1/ballArray[i].scale), (canvas.height - canvas.height*(1/ballArray[i].scale))*(1/ballArray[i].scale));
-            //     c.lineWidth = 100;
-            //     c.stroke();
+                c.clearRect(-canvas.width*(1/ballArray[i].scale)/2, -canvas.height*(1/ballArray[i].scale)/2, canvas.width*(1/ballArray[i].scale), canvas.height*(1/ballArray[i].scale));
+                
+                //bounding box
+                c.beginPath();
+                c.moveTo(-canvas.width*(1/ballArray[i].scale)/2, -canvas.height*(1/ballArray[i].scale)/2);
+                c.lineTo(canvas.width*(1/ballArray[i].scale)/2, -canvas.height*(1/ballArray[i].scale)/2);
+                c.lineTo(canvas.width*(1/ballArray[i].scale)/2, canvas.height*(1/ballArray[i].scale)/2);
+                c.lineTo(-canvas.width*(1/ballArray[i].scale)/2, canvas.height*(1/ballArray[i].scale)/2);
+                c.lineTo(-canvas.width*(1/ballArray[i].scale)/2, -canvas.height*(1/ballArray[i].scale)/2);
+                c.lineWidth = 1;
+                c.stroke();
             }
 
-            mouseX = vm.mouse.x - rect.left;
-            mouseY = vm.mouse.y - rect.top;
+            mouseX = (vm.mouse.x - rect.left - canvas.width/2)*(1/ballArray[0].scale);
+            mouseY = (vm.mouse.y - rect.top - canvas.height/2)*(1/ballArray[0].scale);
 
             for (let i = 0; i < ballArray.length; i++){
                 ballArray[i].update();
@@ -255,6 +263,10 @@ export default {
                 c.fill();
             }
 
+            c.beginPath();
+            c.arc(mouseX, mouseY, 20, 0, Math.PI * 2);
+            c.fillStyle = "black";
+            c.fill();
             
             // c.beginPath();
             // c.arc(2316, 669, 500, 0, Math.PI * 2); 
