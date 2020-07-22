@@ -57,15 +57,15 @@ export default {
         c.translate(canvas.width/2, canvas.height/2);
 
 
-        // function rotateShape(angle, centre, points){
-        //     // console.log(angle, centre, points);
-        //     for(let i = 0; i < 3; i++){
-        //         points[i] = [points[i][0]*Math.cos(angle) - points[i][1]*Math.sin(angle), points[i][0]*Math.sin(angle) + points[i][1]*Math.cos(angle)];
-        //         points[i][0] = centre[0] + points[i][0];
-        //         points[i][1] = centre[1] + points[i][1];
-        //     }
-        //     return points;
-        // }
+        function rotateShape(angle, centre, points){
+            //console.log(angle, centre, points);
+            for(let i = 0; i < points.length; i++){
+                points[i] = [points[i][0]*Math.cos(angle) - points[i][1]*Math.sin(angle), points[i][0]*Math.sin(angle) + points[i][1]*Math.cos(angle)];
+                points[i][0] = centre[0] + points[i][0];
+                points[i][1] = centre[1] + points[i][1];
+            }
+            return points;
+        }
         
         function Ball(x, y, defaultRadius) {
             this.x = x;
@@ -74,6 +74,8 @@ export default {
             this.pathIndex = 0;
             this.velocitySelect = false;
             this.timeSinceClick = 10;
+            
+            let arrowOffset = this.radius*2;
 
             //make all orbit in circular orbits in same direction initially 
             this.dx = 0;
@@ -93,6 +95,7 @@ export default {
                 let currentVel = [this.dx, this.dy];
                 let iterations = 0;
                 this.pathCoords = [];
+                this.pathVels = [];
                 let stepSize = 1;
                 this.scale = 1;
                 this.closedPath = true;
@@ -129,8 +132,10 @@ export default {
 
                     if (this.closedPath){
                         this.pathCoords.push(currentPos.slice());
+                        this.pathVels.push(currentVel.slice());
                     } else{
                         this.pathCoords.unshift(currentPos.slice());
+                        this.pathVels.unshift(currentVel.slice());
                     }
 
                     iterations += 1;
@@ -175,6 +180,32 @@ export default {
                     c.beginPath();
                     c.arc(this.x, this.y, this.radius*1.5, 0, 2*Math.PI);
                     c.fillStyle = 'rgb(0,255,0)';
+                    c.fill();
+
+                    this.radialAngle = Math.atan(this.pathVels[this.pathIndex][0], this.pathVels[this.pathIndex][1]);
+                    this.tanAngle = Math.atan(this.pathVels[this.pathIndex][1], this.pathVels[this.pathIndex][0]);
+
+
+                    this.tanPoints = rotateShape(this.tanAngle, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
+                    [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
+                    this.rotPoints = rotateShape(this.radialAngle + Math.PI, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
+                    [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
+
+                    c.beginPath();
+                    c.moveTo(this.tanPoints[0][0], this.tanPoints[0][1]);
+                    for(let i = 1; i < this.tanPoints.length; i++){
+                        c.lineTo(this.tanPoints[i][0], this.tanPoints[i][1]);
+                    }
+                    c.fillStyle = 'blue';
+                    c.fill();
+
+
+                    c.beginPath();
+                    c.moveTo(this.rotPoints[0][0], this.rotPoints[0][1]);
+                    for(let i = 1; i < this.rotPoints.length; i++){
+                        c.lineTo(this.rotPoints[i][0], this.rotPoints[i][1]);
+                    }
+                    c.fillStyle = 'purple';
                     c.fill();
 
                     // c.beginPath();
@@ -223,7 +254,7 @@ export default {
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
         let massCentres = [[0, 0 , 100]];
-        let initialVel = 1;
+        let initialVel = 2;
 
         ballArray.push(new Ball(canvas.width/3, canvas.height/3, 10));
         for(let i = 0; i < ballArray.length; i++){
