@@ -32,12 +32,9 @@ export default {
         },
         activateSelect(){
             this.velocitySelect = true;
-            //this.velocitySelect = false;
-            console.log('activated', this.velocitySelect);
         },
         cancelSelect(){
             this.velocitySelect = false;
-            console.log('deactivated', this.velocitySelect);
         }
     },
     mounted(){
@@ -74,8 +71,6 @@ export default {
             this.pathIndex = 0;
             this.velocitySelect = false;
             this.timeSinceClick = 10;
-            
-            let arrowOffset = this.radius*2;
 
             //make all orbit in circular orbits in same direction initially 
             this.dx = 0;
@@ -155,10 +150,11 @@ export default {
                         console.log('reverse');
                     }
                 }
-
             }
 
             this.draw = function() {
+                this.radius = defaultRadius*(1/this.scale);
+                let arrowOffset = this.radius*2;
 
                 c.beginPath();
                 c.moveTo(this.pathCoords[0][0], this.pathCoords[0][1]);
@@ -182,43 +178,58 @@ export default {
                     c.fillStyle = 'rgb(0,255,0)';
                     c.fill();
 
-                    this.radialAngle = Math.atan(this.pathVels[this.pathIndex][0], this.pathVels[this.pathIndex][1]);
-                    this.tanAngle = Math.atan(this.pathVels[this.pathIndex][1], this.pathVels[this.pathIndex][0]);
+                    this.tanAngle = Math.atan2(this.pathCoords[this.pathIndex+1][1]- this.pathCoords[this.pathIndex-1][1], this.pathCoords[this.pathIndex+1][0]- this.pathCoords[this.pathIndex-1][0]);
 
-
-                    this.tanPoints = rotateShape(this.tanAngle, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
+                    this.tanPoints1 = rotateShape(this.tanAngle, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
                     [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
-                    this.rotPoints = rotateShape(this.radialAngle + Math.PI, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
+                    this.tanPoints2 = rotateShape(this.tanAngle + Math.PI, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
+                    [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
+                    this.rotPoints1 = rotateShape(this.tanAngle + Math.PI/2, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
+                    [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
+                    this.rotPoints2 = rotateShape(this.tanAngle + 3*Math.PI/2, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
                     [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
 
                     c.beginPath();
-                    c.moveTo(this.tanPoints[0][0], this.tanPoints[0][1]);
-                    for(let i = 1; i < this.tanPoints.length; i++){
-                        c.lineTo(this.tanPoints[i][0], this.tanPoints[i][1]);
+                    c.moveTo(this.tanPoints1[0][0], this.tanPoints1[0][1]);
+                    for(let i = 1; i < this.tanPoints1.length; i++){
+                        c.lineTo(this.tanPoints1[i][0], this.tanPoints1[i][1]);
+                    }
+                    c.fillStyle = 'blue';
+                    c.fill();
+
+                    c.beginPath();
+                    c.moveTo(this.tanPoints2[0][0], this.tanPoints2[0][1]);
+                    for(let i = 1; i < this.tanPoints2.length; i++){
+                        c.lineTo(this.tanPoints2[i][0], this.tanPoints2[i][1]);
                     }
                     c.fillStyle = 'blue';
                     c.fill();
 
 
                     c.beginPath();
-                    c.moveTo(this.rotPoints[0][0], this.rotPoints[0][1]);
-                    for(let i = 1; i < this.rotPoints.length; i++){
-                        c.lineTo(this.rotPoints[i][0], this.rotPoints[i][1]);
+                    c.moveTo(this.rotPoints1[0][0], this.rotPoints1[0][1]);
+                    for(let i = 1; i < this.rotPoints1.length; i++){
+                        c.lineTo(this.rotPoints1[i][0], this.rotPoints1[i][1]);
                     }
                     c.fillStyle = 'purple';
                     c.fill();
 
-                    // c.beginPath();
-                    // c.moveTo(this.x)
+                    c.beginPath();
+                    c.moveTo(this.rotPoints2[0][0], this.rotPoints2[0][1]);
+                    for(let i = 1; i < this.rotPoints2.length; i++){
+                        c.lineTo(this.rotPoints2[i][0], this.rotPoints2[i][1]);
+                    }
+                    c.fillStyle = 'purple';
+                    c.fill();
                 }
-
-                
             }
 
             this.update = function() {
 
                 this.x = this.pathCoords[this.pathIndex][0];
                 this.y = this.pathCoords[this.pathIndex][1];
+                this.dx = this.pathVels[this.pathIndex][0];
+                this.dy = this.pathVels[this.pathIndex][1];
                 
                 if(!this.velocitySelect){
                     this.pathIndex += vm.animationSpeed;
@@ -226,21 +237,17 @@ export default {
                 if(this.pathIndex >= this.pathCoords.length){
                     this.pathIndex=0;
                 }
-
-                //interactivity with mouse
-                // if(Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < mouseRadius){
-                //     if(this.radius < maxRadius){
-                //         this.radius += 0.5;
-                //     }
-                // } else if (this.radius > defaultRadius) {
-                //     this.radius -= 0.5;
-                // }
                 
                 if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5 && this.timeSinceClick > 20){
                     this.timeSinceClick = 0;
                     this.velocitySelect = !this.velocitySelect;
-                    console.log('velocitySelect', this.velocitySelect);
-                } 
+                }
+                
+                // if(this.velocitySelect){
+                //     if(Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5){
+
+                //     }
+                // }
                 
                 this.timeSinceClick += 1; 
                 this.draw();
@@ -254,9 +261,9 @@ export default {
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
         let massCentres = [[0, 0 , 100]];
-        let initialVel = 2;
+        let initialVel = 2.4;
 
-        ballArray.push(new Ball(canvas.width/3, canvas.height/3, 10));
+        ballArray.push(new Ball(canvas.width/3, canvas.height/3, 5));
         for(let i = 0; i < ballArray.length; i++){
             ballArray[i].path();
             // let xScale = Math.max(ballArray[i].pathCoords[0])/canvas.width;
