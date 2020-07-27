@@ -64,35 +64,53 @@ export default {
             return points;
         }
         
-        function Ball(x, y, defaultRadius) {
+        function Ball(x, y, defaultRadius, dx, dy) {
             this.x = x;
             this.y = y;
             this.radius = defaultRadius;
             this.pathIndex = 0;
             this.velocitySelect = false;
             this.timeSinceClick = 10;
+            this.buttonStep = 0.1;
 
-            //make all orbit in circular orbits in same direction initially 
-            this.dx = 0;
-            this.dy = 0;
+            if(dx == undefined || dy == undefined){
+                            //make all orbit in circular orbits in same direction initially 
+                this.dx = 0;
+                this.dy = 0;
 
-            for(let i = 0; i < massCentres.length; i++){  
-                this.dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
-                this.dy += -initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -2))*(massCentres[i][0]-this.x);
+                for(let i = 0; i < massCentres.length; i++){  
+                    this.dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
+                    this.dy += -initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -2))*(massCentres[i][0]-this.x);
+                }
+                for(let i = 0; i < massCentres.length; i++){
+                    this.dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
+                    this.dx += initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -2))*(massCentres[i][1]-this.y);
+                }
+            } else {
+                this.dx = dx;
+                this.dy = dy;
             }
-            for(let i = 0; i < massCentres.length; i++){
-                this.dist = Math.pow(Math.pow(this.x-massCentres[i][0] , 2) + Math.pow(this.y-massCentres[i][1], 2), 0.5);
-                this.dx += initialVel*massCentres[i][2]*Math.abs(Math.pow(this.dist , -2))*(massCentres[i][1]-this.y);
-            }
 
-            this.path = function()  {
+            this.newdx = this.dx;
+            this.newdy = this.dy;
+
+
+            this.path = function(dx, dy)  {
                 let currentPos = [this.x, this.y];
                 let currentVel = [this.dx, this.dy];
+                console.log(this.velocitySelect);
+                if(this.velocitySelect){
+                    currentVel = [dx, dy];
+                    console.log('new Velocity', [dx,dy]);
+                } else {      
+                    this.pathVels = [];
+                    this.pathCoords = [];
+                    this.scale = 1;
+                }
                 let iterations = 0;
-                this.pathCoords = [];
-                this.pathVels = [];
+                this.newCoords = [];
+                this.newVels = [];
                 let stepSize = 1;
-                this.scale = 1;
                 this.closedPath = true;
                 let reverseMultiplier = 1;
                 console.log('path drawing');
@@ -109,9 +127,8 @@ export default {
                         // c.translate(canvas.width/4, canvas.height/4);
                         this.scale = this.scale/2;
                         c.scale(this.scale, this.scale);
-
+                        console.log("Scale: ", this.scale);
                     }
-
 
                     currentPos[0] += currentVel[0] * reverseMultiplier * stepSize;
                     currentPos[1] += currentVel[1] * reverseMultiplier * stepSize;
@@ -126,17 +143,27 @@ export default {
                     }
 
                     if (this.closedPath){
-                        this.pathCoords.push(currentPos.slice());
-                        this.pathVels.push(currentVel.slice());
+                        if(this.velocitySelect){
+                            this.newCoords.push(currentPos.slice());
+                            this.newVels.push(currentVel.slice());
+                        } else{
+                            this.pathCoords.push(currentPos.slice());
+                            this.pathVels.push(currentVel.slice());
+                        }
                     } else{
-                        this.pathCoords.unshift(currentPos.slice());
-                        this.pathVels.unshift(currentVel.slice());
+                        if(this.velocitySelect){
+                            this.newCoords.unshift(currentPos.slice());
+                            this.newVels.unshift(currentVel.slice());
+                        } else{
+                            this.pathCoords.unshift(currentPos.slice());
+                            this.pathVels.unshift(currentVel.slice());
+                        }
                     }
 
                     iterations += 1;
                     
                     //Draw reverse path for open path
-                    if(iterations > 10000){
+                    if(iterations > 20000){
                         this.closedPath = false;
                         currentPos = [this.x, this.y];
                         currentVel = [this.dx, this.dy];
@@ -150,6 +177,7 @@ export default {
                         console.log('reverse');
                     }
                 }
+
             }
 
             this.draw = function() {
@@ -165,7 +193,22 @@ export default {
                     c.lineTo(this.pathCoords[0][0], this.pathCoords[0][1]);
                 }
                 c.lineWidth = 2*(1/this.scale);
+                c.strokeStyle = "black";
                 c.stroke();
+
+                if(this.velocitySelect && this.newCoords.length > 0){
+                    c.beginPath();
+                    c.moveTo(this.newCoords[0][0], this.newCoords[0][1]);
+                    for(let i = 1; i < this.newCoords.length; i++){
+                        c.lineTo(this.newCoords[i][0], this.newCoords[i][1]);
+                    }
+                    if(this.closedPath){
+                        c.lineTo(this.newCoords[0][0], this.newCoords[0][1]);
+                    }
+                    c.lineWidth = 2*(1/this.scale);
+                    c.strokeStyle = "blue";
+                    c.stroke();
+                }
 
                 c.beginPath();
                 c.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
@@ -179,6 +222,11 @@ export default {
                     c.fill();
 
                     this.tanAngle = Math.atan2(this.pathCoords[this.pathIndex+1][1]- this.pathCoords[this.pathIndex-1][1], this.pathCoords[this.pathIndex+1][0]- this.pathCoords[this.pathIndex-1][0]);
+
+                    this.arrowCentres = [];
+                    for(let i = 0; i < 4; i++){
+                        this.arrowCentres.push([this.x + this.radius*4*Math.cos(this.tanAngle + i*Math.PI/2), this.y + this.radius*4*Math.sin(this.tanAngle + i*Math.PI/2)]);
+                    }
 
                     this.tanPoints1 = rotateShape(this.tanAngle, [this.x, this.y], [[arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius], [this.radius*2+arrowOffset, this.radius*2], [this.radius*3+arrowOffset, 0],
                     [this.radius*2+arrowOffset, -this.radius*2], [this.radius*2+arrowOffset, -this.radius], [arrowOffset, -this.radius]]);
@@ -226,12 +274,14 @@ export default {
 
             this.update = function() {
 
-                this.x = this.pathCoords[this.pathIndex][0];
-                this.y = this.pathCoords[this.pathIndex][1];
-                this.dx = this.pathVels[this.pathIndex][0];
-                this.dy = this.pathVels[this.pathIndex][1];
+                this.timeSinceClick += 1; 
+                this.draw();
                 
                 if(!this.velocitySelect){
+                    this.x = this.pathCoords[this.pathIndex][0];
+                    this.y = this.pathCoords[this.pathIndex][1];
+                    this.dx = this.pathVels[this.pathIndex][0];
+                    this.dy = this.pathVels[this.pathIndex][1];
                     this.pathIndex += vm.animationSpeed;
                 }
                 if(this.pathIndex >= this.pathCoords.length){
@@ -239,18 +289,50 @@ export default {
                 }
                 
                 if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5 && this.timeSinceClick > 20){
+                    if(this.velocitySelect){
+                        this.pathCoords = this.newCoords;
+                        this.pathVels = this.newVels;
+                        this.newCoords = [];
+                        this.newVels = [];
+                    }
+
                     this.timeSinceClick = 0;
                     this.velocitySelect = !this.velocitySelect;
                 }
                 
-                // if(this.velocitySelect){
-                //     if(Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5){
-
-                //     }
-                // }
-                
-                this.timeSinceClick += 1; 
-                this.draw();
+                if(this.velocitySelect){
+                    // if(ballArray.length = 1){
+                    //     ballArray.push(new Ball(canvas.width/3, canvas.height/3, 10, undefined, undefined));
+                    //     //console.log(ballArray);
+                    // }
+                    for(let i = 0; i < this.arrowCentres.length; i++){
+                        if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.arrowCentres[i][0]),2) + Math.pow((mouseY-this.arrowCentres[i][1]),2)),1/2) < this.radius*2 && this.timeSinceClick > 20){
+                            this.timeSinceClick = 0;
+                            if(i == 0){
+                                console.log('tangential out'); 
+                                this.newdx += this.buttonStep * Math.cos(this.tanAngle);
+                                this.newdy += this.buttonStep * Math.sin(this.tanAngle);
+                            }
+                            if(i == 1){
+                                console.log('radial in');
+                                this.newdx += this.buttonStep * Math.sin(this.tanAngle);
+                                this.newdy += this.buttonStep * Math.cos(this.tanAngle);
+                            }
+                            if(i == 2){
+                                console.log('tangential in');
+                                this.newdx += -this.buttonStep * Math.cos(this.tanAngle);
+                                this.newdy += -this.buttonStep * Math.sin(this.tanAngle);
+                            }
+                            if(i == 3){
+                                console.log('radial out');
+                                this.newdx += -this.buttonStep * Math.sin(this.tanAngle);
+                                this.newdy += -this.buttonStep * Math.cos(this.tanAngle);
+                            }
+                            console.log('arrow Press');
+                            this.path(this.newdx, this.newdy);
+                        }
+                    }
+                }
             }
         }
         
@@ -261,17 +343,11 @@ export default {
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
         let massCentres = [[0, 0 , 100]];
-        let initialVel = 2.4;
+        let initialVel = 2;
 
-        ballArray.push(new Ball(canvas.width/3, canvas.height/3, 5));
+        ballArray.push(new Ball(canvas.width/3, canvas.height/3, 5, undefined, undefined));
         for(let i = 0; i < ballArray.length; i++){
             ballArray[i].path();
-            // let xScale = Math.max(ballArray[i].pathCoords[0])/canvas.width;
-            // console.log(xScale);
-
-            // let scale = Math.max([Math.max(ballArray[i].pathCoords[0])/canvas.width, Math.max(ballArray[i].pathCoords[1])/canvas.height]);
-            // console.log(scale);
-            // c.scale(scale,scale);
         }
 
         function animate() {
