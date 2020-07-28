@@ -1,5 +1,5 @@
 <template>
-    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave" @mousedown="activateSelect" @mouseup="cancelSelect">
+    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave" @mousedown="activateSelect" @mouseup="cancelSelect" @touchstart="activateSelect" @touchend="cancelSelect">
          <canvas id="front-animation" style="width:100%; height:100%" ></canvas>
     </div>
 </template>
@@ -117,18 +117,18 @@ export default {
 
                 while(Math.pow((Math.pow(this.x-currentPos[0], 2) + Math.pow(this.y-currentPos[1],2)),0.5) > 1 || iterations < 100){
                     
-                    if(currentPos[0] < -canvas.width*(1/this.scale)/2 || currentPos[0] > canvas.width*(1/this.scale)/2 || currentPos[1] < -canvas.height*(1/this.scale)/2 || currentPos[1] > canvas.height*(1/this.scale)/2){
+                    // if(currentPos[0] < -canvas.width*(1/this.scale)/2 || currentPos[0] > canvas.width*(1/this.scale)/2 || currentPos[1] < -canvas.height*(1/this.scale)/2 || currentPos[1] > canvas.height*(1/this.scale)/2){
                         
-                        console.log('scale = ', this.scale);
-                        console.log(currentPos[0], (canvas.width - canvas.width*(1/this.scale)), canvas.width*(1/this.scale));
-                        console.log(currentPos[1], (canvas.height - canvas.height*(1/this.scale)) , canvas.height*(1/this.scale));
+                    //     console.log('scale = ', this.scale);
+                    //     console.log(currentPos[0], (canvas.width - canvas.width*(1/this.scale)), canvas.width*(1/this.scale));
+                    //     console.log(currentPos[1], (canvas.height - canvas.height*(1/this.scale)) , canvas.height*(1/this.scale));
                         
-                        c.scale((1/this.scale), (1/this.scale));
-                        // c.translate(canvas.width/4, canvas.height/4);
-                        this.scale = this.scale/2;
-                        c.scale(this.scale, this.scale);
-                        console.log("Scale: ", this.scale);
-                    }
+                    //     c.scale((1/this.scale), (1/this.scale));
+                    //     // c.translate(canvas.width/4, canvas.height/4);
+                    //     this.scale = this.scale/2;
+                    //     c.scale(this.scale, this.scale);
+                    //     console.log("Scale: ", this.scale);
+                    // }
 
                     currentPos[0] += currentVel[0] * reverseMultiplier * stepSize;
                     currentPos[1] += currentVel[1] * reverseMultiplier * stepSize;
@@ -178,6 +178,69 @@ export default {
                     }
                 }
 
+                
+                // Scaling
+                let maxX = this.pathCoords[0][0];
+                let maxY = this.pathCoords[0][1];
+                let minX = this.pathCoords[0][0];
+                let minY = this.pathCoords[0][1];
+
+                if(this.newCoords.length > 0){
+                    for (let i = 0; i < this.newCoords.length; i++) {
+                        let coord = this.newCoords[i]
+
+                        if (coord[0] > maxX) {
+                            maxX = coord[0];
+                        }
+                        else if (coord[0] < minX) {
+                            minX = coord[0];
+                        }
+
+                        if (coord[1] > maxY) {
+                            maxY = coord[1];
+                        }
+                        else if (coord[1] < minY) {
+                            minY = coord[1];
+                        }
+                    }
+                } else{
+                    for (let i = 0; i < this.pathCoords.length; i++) {
+                        let coord = this.pathCoords[i]
+
+                        if (coord[0] > maxX) {
+                            maxX = coord[0];
+                        }
+                        else if (coord[0] < minX) {
+                            minX = coord[0];
+                        }
+
+                        if (coord[1] > maxY) {
+                            maxY = coord[1];
+                        }
+                        else if (coord[1] < minY) {
+                            minY = coord[1];
+                        }
+                    }
+                }
+
+                console.log(maxX, maxY, minX, minY);
+
+                if(maxX < canvas.width*(1/this.scale)/4 && maxY < canvas.height*(1/this.scale)/4 && minX > -canvas.width*(1/this.scale)/4 && minY > -canvas.height*(1/this.scale)/4){
+                    console.log('downsize', maxX, minX, canvas.width*(1/this.scale)/4, maxY, minY, canvas.height*(1/this.scale)/4);
+                    c.scale((1/this.scale), (1/this.scale));
+                    // c.translate(canvas.width/4, canvas.height/4);
+                    this.scale = this.scale*2;
+                    c.scale(this.scale, this.scale);
+                }
+                
+                if(maxX > canvas.width*(1/this.scale)/2 || maxY > canvas.height*(1/this.scale)/2 || minX < -canvas.width*(1/this.scale)/2 || minY < -canvas.height*(1/this.scale)/2){
+                    console.log('upsize', maxX, minX, canvas.width*(1/this.scale)/4, maxY, minY, canvas.height*(1/this.scale)/4);
+                    c.scale((1/this.scale), (1/this.scale));
+                    // c.translate(canvas.width/4, canvas.height/4);
+                    this.scale = this.scale/2;
+                    c.scale(this.scale, this.scale);
+                }
+                
             }
 
             this.draw = function() {
@@ -343,7 +406,7 @@ export default {
         // [[x,y, mass]]
         //let massCentres = [[canvas.width/3, canvas.height/3], [2*canvas.width/3, canvas.height/3], [canvas.width/2, 2*canvas.height/3]];
         let massCentres = [[0, 0 , 100]];
-        let initialVel = 2;
+        let initialVel = 1;
 
         ballArray.push(new Ball(canvas.width/3, canvas.height/3, 5, undefined, undefined));
         for(let i = 0; i < ballArray.length; i++){
