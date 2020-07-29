@@ -349,16 +349,16 @@ export default {
 
                 this.timeSinceClick += 1; 
                 this.draw();
-                
+
+                if(this.pathIndex >= this.pathCoords.length){
+                    this.pathIndex=0;
+                }
                 if(!this.velocitySelect){
                     this.x = this.pathCoords[this.pathIndex][0];
                     this.y = this.pathCoords[this.pathIndex][1];
                     this.dx = this.pathVels[this.pathIndex][0];
                     this.dy = this.pathVels[this.pathIndex][1];
                     this.pathIndex += vm.animationSpeed;
-                }
-                if(this.pathIndex >= this.pathCoords.length){
-                    this.pathIndex=0;
                 }
                 
                 if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5 && this.timeSinceClick > 20){
@@ -367,6 +367,7 @@ export default {
                         this.pathVels = this.newVels;
                         this.newCoords = [];
                         this.newVels = [];
+                        this.pathIndex = 0; 
                     }
 
                     this.timeSinceClick = 0;
