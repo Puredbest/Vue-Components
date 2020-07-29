@@ -351,7 +351,7 @@ export default {
                 this.draw();
 
                 if(this.pathIndex >= this.pathCoords.length){
-                    this.pathIndex=0;
+                    this.pathIndex=1;
                 }
                 if(!this.velocitySelect){
                     this.x = this.pathCoords[this.pathIndex][0];
@@ -367,7 +367,7 @@ export default {
                         this.pathVels = this.newVels;
                         this.newCoords = [];
                         this.newVels = [];
-                        this.pathIndex = 0; 
+                        this.pathIndex = 1; 
                     }
 
                     this.timeSinceClick = 0;
