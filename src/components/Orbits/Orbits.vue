@@ -1,5 +1,5 @@
 <template>
-    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave" @mousedown="activateSelect" @mouseup="cancelSelect" @touchstart="activateSelect" @touchend="cancelSelect">
+    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave" @mousedown="activateSelect" @mouseup="cancelSelect" @touchstart="activateSelect" @touchend="cancelSelect" @touch="mouseOver">
          <canvas id="front-animation" style="width:100%; height:100%" ></canvas>
     </div>
 </template>
@@ -19,6 +19,9 @@ export default {
         },
         velocitySelect: {
             default: false
+        },
+        sunRadius: {
+            default: 20
         }
     },
     methods: {
@@ -91,10 +94,6 @@ export default {
                 this.dy = dy;
             }
 
-            this.newdx = this.dx;
-            this.newdy = this.dy;
-
-
             this.path = function(dx, dy)  {
                 let currentPos = [this.x, this.y];
                 let currentVel = [this.dx, this.dy];
@@ -113,6 +112,7 @@ export default {
                 let stepSize = 1;
                 this.closedPath = true;
                 let reverseMultiplier = 1;
+                this.maxIterations = 20000;
                 console.log('path drawing');
 
                 while(Math.pow((Math.pow(this.x-currentPos[0], 2) + Math.pow(this.y-currentPos[1],2)),0.5) > 1 || iterations < 100){
@@ -132,6 +132,12 @@ export default {
 
                     currentPos[0] += currentVel[0] * reverseMultiplier * stepSize;
                     currentPos[1] += currentVel[1] * reverseMultiplier * stepSize;
+
+                    //Check if orbit goes inside sun
+                    // if(Math.pow(Math.pow(currentPos[0],2) + Math.pow(currentPos[1],2),0.5) < vm.sunRadius){
+                    //     this.maxIterations = iterations;
+                    //     this.closedPath = false;
+                    // }
                     
                     //console.log(currentPos, currentVel);
 
@@ -163,10 +169,16 @@ export default {
                     iterations += 1;
                     
                     //Draw reverse path for open path
-                    if(iterations > 20000){
+                    if(iterations > this.maxIterations || Math.pow(Math.pow(currentPos[0],2) + Math.pow(currentPos[1],2),0.5) < vm.sunRadius){
+                        this.maxIterations = iterations;
                         this.closedPath = false;
-                        currentPos = [this.x, this.y];
-                        currentVel = [this.dx, this.dy];
+                        if(this.velocitySelect){
+                            currentPos = [this.x, this.y];
+                            currentVel = [dx, dy];
+                        } else {
+                            currentPos = [this.x, this.y];
+                            currentVel = [this.dx, this.dy];
+                        }
                         iterations = 0;
                         
                         if(reverseMultiplier < 0){
@@ -222,8 +234,6 @@ export default {
                         }
                     }
                 }
-
-                console.log(maxX, maxY, minX, minY);
 
                 if(maxX < canvas.width*(1/this.scale)/4 && maxY < canvas.height*(1/this.scale)/4 && minX > -canvas.width*(1/this.scale)/4 && minY > -canvas.height*(1/this.scale)/4){
                     console.log('downsize', maxX, minX, canvas.width*(1/this.scale)/4, maxY, minY, canvas.height*(1/this.scale)/4);
@@ -352,7 +362,7 @@ export default {
                 }
                 
                 if(vm.velocitySelect && Math.pow((Math.pow((mouseX-this.x),2) + Math.pow((mouseY-this.y),2)),1/2) < this.radius*1.5 && this.timeSinceClick > 20){
-                    if(this.velocitySelect){
+                    if(this.velocitySelect && this.newCoords.length > 0){
                         this.pathCoords = this.newCoords;
                         this.pathVels = this.newVels;
                         this.newCoords = [];
@@ -395,6 +405,9 @@ export default {
                             this.path(this.newdx, this.newdy);
                         }
                     }
+                } else {
+                    this.newdx = this.dx;
+                    this.newdy = this.dy;
                 }
             }
         }
@@ -439,7 +452,7 @@ export default {
 
             for (let i = 0; i <massCentres.length; i++){
                 c.beginPath();
-                c.arc(massCentres[i][0], massCentres[i][1], 20, 0, Math.PI * 2); 
+                c.arc(massCentres[i][0], massCentres[i][1], vm.sunRadius, 0, Math.PI * 2); 
                 c.fillStyle = 'Orange';
                 c.fill();
             }
