@@ -1,5 +1,5 @@
 <template>
-    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave" @mousedown="activateSelect" @mouseup="cancelSelect" @touchstart="activateSelect" @touchend="cancelSelect" @touch="mouseOver">
+    <div id="parent" style="height:70vh;" @mousemove="mouseOver" @mouseleave="mouseLeave" @mousedown="activateSelect" @mouseup="cancelSelect" @touchstart="touchOn" @touchend="touchOff" @touchmove="touchChange">
          <canvas id="front-animation" style="width:100%; height:100%" ></canvas>
     </div>
 </template>
@@ -22,9 +22,42 @@ export default {
         },
         sunRadius: {
             default: 20
+        },
+        touchSelect: {
+            default: false
+        },
+        initialTouchPos:{
+            default: {
+                x: undefined,
+                y: undefined
+            }
+        },
+        currentTouchPos:{
+            default: {
+                x: undefined,
+                y: undefined
+            }
         }
     },
     methods: {
+        touchOn(event){
+            this.initialTouchPos.x = event.touches[0].pageX;
+            this.initialTouchPos.y = event.touches[0].pageY;
+            this.touchSelect = true;
+            console.log('touchOn');
+        },
+        touchOff(){
+            this.touchSelect = false;
+            this.currentTouchPos.x = undefined;
+            this.currentTouchPos.y = undefined;
+            this.initialTouchPos.x = undefined;
+            this.initialTouchPos.y = undefined;
+            console.log('touchOff');
+        },
+        touchChange(event){
+            this.currentTouchPos.x = event.touches[0].pageX;
+            this.currentTouchPos.y = event.touches[0].pageY;
+        },
         mouseOver(event){
             this.mouse.x = event.x;
             this.mouse.y = event.y;
@@ -50,6 +83,10 @@ export default {
         let vm = this;
         let mouseX = this.mouse.x - rect.left;
         let mouseY = this.mouse.y - rect.top;
+        let currentTouchX = this.currentTouchPos.x - rect.left;
+        let currentTouchY = this.currentTouchPos.y - rect.top;
+        // let initialTouchX = this.initialTouchPos.x - rect.left;
+        // let initialTouchY = this.initialTouchPos.y - rect.top;
 
 
         let c = canvas.getContext('2d');
@@ -73,6 +110,7 @@ export default {
             this.radius = defaultRadius;
             this.pathIndex = 0;
             this.velocitySelect = false;
+            this.touchInterface = false;
             this.timeSinceClick = 10;
             this.buttonStep = 0.1;
 
@@ -255,7 +293,7 @@ export default {
 
             this.draw = function() {
                 this.radius = defaultRadius*(1/this.scale);
-                let arrowOffset = this.radius*2;
+                let arrowOffset = this.radius*3;
 
                 c.beginPath();
                 c.moveTo(this.pathCoords[0][0], this.pathCoords[0][1]);
@@ -343,6 +381,37 @@ export default {
                     c.fillStyle = 'purple';
                     c.fill();
                 }
+
+                if(vm.touchSelect){
+                    // let dispX = currentTouchX - initialTouchX;
+                    // let dispY = currentTouchY - initialTouchY;
+                    this.mag = Math.pow(Math.pow(currentTouchX- this.x, 2) + Math.pow(currentTouchY-this.y, 2), 0.5);
+                    if(this.mag > this.radius*20){
+                        this.mag = this.radius*20;
+                    }
+
+                    this.arrowAngle = Math.atan2(currentTouchY - this.y, currentTouchX - this.x);
+
+                    this.arrowPoints = rotateShape(this.arrowAngle, [this.x, this.y], [[0,0], [this.mag, this.radius*2], [this.mag, this.radius*6], [this.mag + this.radius*6, 0],[this.mag, -this.radius*6] ,[this.mag, -this.radius*2]]);
+
+                    c.beginPath();
+                    c.moveTo(this.x, this.y);
+                    for(let i = 0; i < this.arrowPoints.length; i++){
+                        c.lineTo(this.arrowPoints[i][0], this.arrowPoints[i][1]);
+                    }
+                    c.fillStyle = 'rgba(0, 255, 0, 0.7)';
+                    c.fill();
+
+                    // c.beginPath();
+                    // c.arc(initialTouchX, initialTouchY, vm.sunRadius, 0, Math.PI * 2);
+                    // c.fillStyle = 'green';
+                    // c.fill();
+
+                    // c.beginPath();
+                    // c.arc(currentTouchX, currentTouchY, vm.sunRadius, 0, Math.PI * 2);
+                    // c.fillStyle = 'purple';
+                    // c.fill();
+                }
             }
 
             this.update = function() {
@@ -353,7 +422,8 @@ export default {
                 if(this.pathIndex >= this.pathCoords.length){
                     this.pathIndex=1;
                 }
-                if(!this.velocitySelect){
+                
+                if(!this.velocitySelect && !vm.touchSelect){
                     this.x = this.pathCoords[this.pathIndex][0];
                     this.y = this.pathCoords[this.pathIndex][1];
                     this.dx = this.pathVels[this.pathIndex][0];
@@ -446,6 +516,10 @@ export default {
 
             mouseX = (vm.mouse.x - rect.left - canvas.width/2)*(1/ballArray[0].scale);
             mouseY = (vm.mouse.y - rect.top - canvas.height/2)*(1/ballArray[0].scale);
+            currentTouchX = (vm.currentTouchPos.x - rect.left - canvas.width/2)*(1/ballArray[0].scale);
+            currentTouchY = (vm.currentTouchPos.y - rect.top - canvas.height/2)*(1/ballArray[0].scale);
+            // initialTouchX = (vm.initialTouchPos.x - rect.left - canvas.width/2)*(1/ballArray[0].scale);
+            // initialTouchY = (vm.initialTouchPos.y - rect.top - canvas.height/2)*(1/ballArray[0].scale);
 
             for (let i = 0; i < ballArray.length; i++){
                 ballArray[i].update();
