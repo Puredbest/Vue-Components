@@ -113,6 +113,8 @@ export default {
             this.touchInterface = false;
             this.timeSinceClick = 10;
             this.buttonStep = 0.1;
+            this.arrowConfirmed = false;
+            let newPath = false;
 
             if(dx == undefined || dy == undefined){
                             //make all orbit in circular orbits in same direction initially 
@@ -136,9 +138,10 @@ export default {
                 let currentPos = [this.x, this.y];
                 let currentVel = [this.dx, this.dy];
                 console.log(this.velocitySelect);
-                if(this.velocitySelect){
+                if(this.velocitySelect || newPath){
                     currentVel = [dx, dy];
                     console.log('new Velocity', [dx,dy]);
+                    console.log('original Velocitiy', [this.dx, this.dy]);
                 } else {      
                     this.pathVels = [];
                     this.pathCoords = [];
@@ -154,30 +157,9 @@ export default {
                 console.log('path drawing');
 
                 while(Math.pow((Math.pow(this.x-currentPos[0], 2) + Math.pow(this.y-currentPos[1],2)),0.5) > 1 || iterations < 100){
-                    
-                    // if(currentPos[0] < -canvas.width*(1/this.scale)/2 || currentPos[0] > canvas.width*(1/this.scale)/2 || currentPos[1] < -canvas.height*(1/this.scale)/2 || currentPos[1] > canvas.height*(1/this.scale)/2){
-                        
-                    //     console.log('scale = ', this.scale);
-                    //     console.log(currentPos[0], (canvas.width - canvas.width*(1/this.scale)), canvas.width*(1/this.scale));
-                    //     console.log(currentPos[1], (canvas.height - canvas.height*(1/this.scale)) , canvas.height*(1/this.scale));
-                        
-                    //     c.scale((1/this.scale), (1/this.scale));
-                    //     // c.translate(canvas.width/4, canvas.height/4);
-                    //     this.scale = this.scale/2;
-                    //     c.scale(this.scale, this.scale);
-                    //     console.log("Scale: ", this.scale);
-                    // }
 
                     currentPos[0] += currentVel[0] * reverseMultiplier * stepSize;
                     currentPos[1] += currentVel[1] * reverseMultiplier * stepSize;
-
-                    //Check if orbit goes inside sun
-                    // if(Math.pow(Math.pow(currentPos[0],2) + Math.pow(currentPos[1],2),0.5) < vm.sunRadius){
-                    //     this.maxIterations = iterations;
-                    //     this.closedPath = false;
-                    // }
-                    
-                    //console.log(currentPos, currentVel);
 
                     for(let i = 0; i < massCentres.length; i++){
                         let dist = Math.pow(Math.pow(currentPos[0]-massCentres[i][0] , 2) + Math.pow(currentPos[1]-massCentres[i][1], 2), 0.5);
@@ -187,7 +169,7 @@ export default {
                     }
 
                     if (this.closedPath){
-                        if(this.velocitySelect){
+                        if(this.velocitySelect || newPath){
                             this.newCoords.push(currentPos.slice());
                             this.newVels.push(currentVel.slice());
                         } else{
@@ -195,7 +177,7 @@ export default {
                             this.pathVels.push(currentVel.slice());
                         }
                     } else{
-                        if(this.velocitySelect){
+                        if(this.velocitySelect || newPath){
                             this.newCoords.unshift(currentPos.slice());
                             this.newVels.unshift(currentVel.slice());
                         } else{
@@ -210,7 +192,7 @@ export default {
                     if(iterations > this.maxIterations || Math.pow(Math.pow(currentPos[0],2) + Math.pow(currentPos[1],2),0.5) < vm.sunRadius){
                         this.maxIterations = iterations;
                         this.closedPath = false;
-                        if(this.velocitySelect){
+                        if(this.velocitySelect || newPath){
                             currentPos = [this.x, this.y];
                             currentVel = [dx, dy];
                         } else {
@@ -289,6 +271,7 @@ export default {
                     c.scale(this.scale, this.scale);
                 }
                 
+                newPath = false;
             }
 
             this.draw = function() {
@@ -402,15 +385,7 @@ export default {
                     c.fillStyle = 'rgba(0, 255, 0, 0.7)';
                     c.fill();
 
-                    // c.beginPath();
-                    // c.arc(initialTouchX, initialTouchY, vm.sunRadius, 0, Math.PI * 2);
-                    // c.fillStyle = 'green';
-                    // c.fill();
-
-                    // c.beginPath();
-                    // c.arc(currentTouchX, currentTouchY, vm.sunRadius, 0, Math.PI * 2);
-                    // c.fillStyle = 'purple';
-                    // c.fill();
+                    this.arrowConfirmed = true;
                 }
             }
 
@@ -479,6 +454,25 @@ export default {
                 } else {
                     this.newdx = this.dx;
                     this.newdy = this.dy;
+                }
+
+                //Change velocity and draw new path when touch released
+                if(!vm.touchSelect && this.arrowConfirmed){
+                    this.newdx = this.dx + (Math.cos(this.arrowAngle)) * (0.0005*this.mag/this.radius*20);
+                    this.newdy = this.dy + (Math.sin(this.arrowAngle)) * (0.0005*this.mag/this.radius*20);
+                    
+                    newPath = true;
+                    this.newCoords = [];
+                    this.newVels = [];
+                    this.path(this.newdx, this.newdy);
+
+                    if(this.newCoords.length > 0){
+                        this.pathCoords = this.newCoords;
+                        this.pathVels = this.newVels;
+                        this.pathIndex = 1; 
+                    }
+
+                    this.arrowConfirmed = false;
                 }
             }
         }
