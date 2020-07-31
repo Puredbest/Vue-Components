@@ -43,7 +43,6 @@ export default {
         touchOn(event){
             this.initialTouchPos.x = event.touches[0].pageX;
             this.initialTouchPos.y = event.touches[0].pageY;
-            this.touchSelect = true;
             console.log('touchOn');
         },
         touchOff(){
@@ -55,6 +54,7 @@ export default {
             console.log('touchOff');
         },
         touchChange(event){
+            this.touchSelect = true;
             this.currentTouchPos.x = event.touches[0].pageX;
             this.currentTouchPos.y = event.touches[0].pageY;
         },
@@ -139,9 +139,11 @@ export default {
                 let currentVel = [this.dx, this.dy];
                 console.log(this.velocitySelect);
                 if(this.velocitySelect || newPath){
-                    currentVel = [dx, dy];
-                    console.log('new Velocity', [dx,dy]);
-                    console.log('original Velocitiy', [this.dx, this.dy]);
+                    if(isNaN(dx) || isNaN(dy)){
+                        currentVel = [this.x, this.y];
+                    } else {
+                        currentVel = [dx, dy];
+                    }
                 } else {      
                     this.pathVels = [];
                     this.pathCoords = [];
@@ -210,7 +212,15 @@ export default {
                     }
                 }
 
+                //Call scaling method
+                for(let i = 0; i < 5; i++){  
+                    this.scaleCanvas();
+                }
                 
+                newPath = false;
+            }
+
+            this.scaleCanvas = function() {
                 // Scaling
                 let maxX = this.pathCoords[0][0];
                 let maxY = this.pathCoords[0][1];
@@ -218,6 +228,11 @@ export default {
                 let minY = this.pathCoords[0][1];
 
                 if(this.newCoords.length > 0){
+                    maxX = this.newCoords[0][0];
+                    maxY = this.newCoords[0][1];
+                    minX = this.newCoords[0][0];
+                    minY = this.newCoords[0][1];
+
                     for (let i = 0; i < this.newCoords.length; i++) {
                         let coord = this.newCoords[i]
 
@@ -236,6 +251,11 @@ export default {
                         }
                     }
                 } else{
+                    maxX = this.pathCoords[0][0];
+                    maxY = this.pathCoords[0][1];
+                    minX = this.pathCoords[0][0];
+                    minY = this.pathCoords[0][1];
+
                     for (let i = 0; i < this.pathCoords.length; i++) {
                         let coord = this.pathCoords[i]
 
@@ -261,17 +281,13 @@ export default {
                     // c.translate(canvas.width/4, canvas.height/4);
                     this.scale = this.scale*2;
                     c.scale(this.scale, this.scale);
-                }
-                
-                if(maxX > canvas.width*(1/this.scale)/2 || maxY > canvas.height*(1/this.scale)/2 || minX < -canvas.width*(1/this.scale)/2 || minY < -canvas.height*(1/this.scale)/2){
+                }else if(maxX > canvas.width*(1/this.scale)/2 || maxY > canvas.height*(1/this.scale)/2 || minX < -canvas.width*(1/this.scale)/2 || minY < -canvas.height*(1/this.scale)/2){
                     console.log('upsize', maxX, minX, canvas.width*(1/this.scale)/4, maxY, minY, canvas.height*(1/this.scale)/4);
                     c.scale((1/this.scale), (1/this.scale));
                     // c.translate(canvas.width/4, canvas.height/4);
                     this.scale = this.scale/2;
                     c.scale(this.scale, this.scale);
                 }
-                
-                newPath = false;
             }
 
             this.draw = function() {
@@ -469,7 +485,11 @@ export default {
                     if(this.newCoords.length > 0){
                         this.pathCoords = this.newCoords;
                         this.pathVels = this.newVels;
-                        this.pathIndex = 1; 
+                        if(this.closedPath){
+                            this.pathIndex = 1; 
+                        } else{
+                            this.pathIndex = Math.round(this.pathCoords.length/2);
+                        }
                     }
 
                     this.arrowConfirmed = false;
