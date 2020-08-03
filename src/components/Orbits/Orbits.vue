@@ -103,6 +103,7 @@ export default {
             }
             return points;
         }
+
         
         function Ball(x, y, defaultRadius, dx, dy) {
             this.x = x;
@@ -132,6 +133,27 @@ export default {
             } else {
                 this.dx = dx;
                 this.dy = dy;
+            }
+
+            this.pathEnergies = function(){
+                this.pathColPot = [];
+                this.pathAngMom = [];
+                this.pathEffPot = [];
+                this.totE = 0;
+
+                for(let i = 0; i < this.pathCoords.length; i++){
+                    // Taking mass of orbiting object as 1
+                    this.dist = Math.pow(Math.pow(this.pathCoords[i][0]-massCentres[0][0] , 2) + Math.pow(this.pathCoords[i][1]-massCentres[0][1], 2), 0.5);
+                    this.pathColPot.push(1/this.dist);
+                    this.pathAngMom.push(Math.pow(Math.pow(this.pathVels[i],2), + Math.pow(this.pathVels[i],2),0.5) * this.dist);
+                    this.pathEffPot.push(this.pathColPot[i] + this.pathAngMom[i]);
+                }
+
+                // this.totE = 0.5*Math.pow(this.pathAngMom[0] ,2) + this.colPot[0];
+                // this.totE = 0.5*(Math.pow(this.dx,2) + Math.pow(this.dy,2)) + massCentres[i][2]*Math.abs(this.dist, -1);
+                vm.$emit('energies', [this.pathAngMom, this.pathColPot, this.pathEffPot,this.totE]);
+                console.log('emitted');
+                
             }
 
             this.path = function(dx, dy)  {
@@ -210,6 +232,8 @@ export default {
                         reverseMultiplier = -1;
                         console.log('reverse');
                     }
+
+                    this.pathEnergies;
                 }
 
                 //Call scaling method
@@ -218,6 +242,7 @@ export default {
                 }
                 
                 newPath = false;
+                this.pathEnergies();
             }
 
             this.scaleCanvas = function() {

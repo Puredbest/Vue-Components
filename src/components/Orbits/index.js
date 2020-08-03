@@ -1,2 +1,4 @@
 import Orbits from './Orbits.vue';
-export default Orbits;
+import EffectivePotential from './EffectivePotential.vue';
+import OrbitCombo from './Combined.vue';
+export {EffectivePotential,Orbits, OrbitCombo};

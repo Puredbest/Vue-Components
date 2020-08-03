@@ -2,7 +2,7 @@
 // export {default as ComponentName} from './ComponentFolder';
 
 export {SVGContainer, SVGDraggable} from "./SVGDragAndDrop";
-export {default as Orbits} from "./Orbits";
+export {EffectivePotential, Orbits, OrbitCombo} from "./Orbits";
 export {default as EquationBox} from "./EquationBox";
 //export {default as Canvas} from "./Canvas";
 export {default as EquationBoxAdvance} from "./EquationBoxAdvance";
