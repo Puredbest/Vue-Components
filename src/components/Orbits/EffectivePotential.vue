@@ -11,16 +11,25 @@ import * as d3 from 'd3';
 export default {
     name:'iv-eff-pot',
     props: {
+        energies: {default: []},
+        redraw: {default: false},
+    },
+    methods:{
+        updatePlot(energies){
+            console.log('updatePlot EffPot');
+            this.energies = energies;
+            this.redraw = true;
+        }
     },
     mounted(){
+        let vm = this;
 
-        // let data = [[0, 0], [10, 10], [20, 40], [30, 90]];
-        let data2 = [[90, 30], [40, 20], [10, 10], [0, 0]];
+        let data2 = [[0, 0], [10, 10], [20, 40], [30, 90]];
 
         let minX = 0;
         let maxX = 100;
-        let minY = 0;
-        let maxY = 100;
+        let minY = -0.1;
+        let maxY = 0.1;
         let plotWidth = document.getElementById('potentialPlot').offsetWidth;
         let plotHeight = document.getElementById('potentialPlot').offsetHeight;
         let axWidth = plotWidth * 0.8;
@@ -38,6 +47,28 @@ export default {
                         .append("svg")
                         .attr("width", plotWidth)
                         .attr("height", plotHeight)
+
+
+        function rescale(minX, maxX, minY ,maxY) {
+            xScaler.domain([minX, maxX])
+            yScaler.domain([minY, maxY])
+            plotSvg.select('.xaxis')
+                   .transition()
+                   .duration(1500)
+                   .call(d3.axisBottom().scale(xScaler))
+            plotSvg.select('.yaxis')
+                   .transition()
+                   .duration(1500)
+                   .call(d3.axisLeft().scale(yScaler))
+            plotSvg.select(".line")
+                   .transition().duration(1500)
+                   .attr("d", d3.line()
+                            .x(function(d) { return xScaler(d[0]); })
+                            .y(function(d) { return yScaler(d[1]); })
+                            .curve(d3.curveMonotoneX)
+                    )
+        }
+        
 
         plotSvg.append("g")
                .attr("transform", "translate(50,10)")
@@ -62,27 +93,87 @@ export default {
                             .curve(d3.curveMonotoneX)
                     )
 
-        function rescale(maxX, maxY) {
-            xScaler.domain([0, maxX])
-            yScaler.domain([0, maxY])
-            plotSvg.select('.xaxis')
-                   .transition()
-                   .duration(1500)
-                   .call(d3.axisBottom().scale(xScaler))
-            plotSvg.select('.yaxis')
-                   .transition()
-                   .duration(1500)
-                   .call(d3.axisLeft().scale(yScaler))
-            plotSvg.select(".line")
-                   .transition().duration(1500)
-                   .attr("d", d3.line()
-                            .x(function(d) { return xScaler(d[0]); })
-                            .y(function(d) { return yScaler(d[1]); })
-                            .curve(d3.curveMonotoneX)
+
+        plotSvg.append("circle")
+               .data([data2[2]])
+               .attr("transform", "translate(50,10)")
+               .attr("cx", function(d) { return xScaler(d[0]); })
+               .attr("cy", function(d) { return yScaler(d[1]); })
+               .attr("r", 10)
+               .attr("fill", "blue")
+               .attr("stroke", "none")
+
+        function redraw(){
+            requestAnimationFrame(redraw);
+
+            if(vm.redraw){
+                // plotSvg.selectAll("circle")
+                //         .data([[50, 50]])
+                //         .transition()
+                //         .duration(10000)
+                //         .attr("cx", function(d) { return xScaler(d[0]);})
+                //         .attr("cy", function(d) { return yScaler(d[1]);})
+                //         .ease(d3.easeLinear)
+
+                let newAngMom = [];
+                for(let i = 0; i < vm.energies[1].length; i++){
+                    newAngMom.push([i, vm.energies[1][i]]);
+                }
+
+                plotSvg.selectAll("path")
+                        .data([newAngMom])
+                        .attr("transform", "translate(50,10)")
+                        .attr("class", "line")
+                        .attr("stroke", "magenta")
+                        .attr("stroke-width", 2)
+                        .attr("fill", "none")
+                        .attr("d", d3.line()
+                                        .x(function(d) { return xScaler(d[0]); })
+                                        .y(function(d) { return yScaler(d[1]); })
+                                        .curve(d3.curveMonotoneX)
                     )
+                
+                rescale(0, vm.energies[1].length, Math.min(...vm.energies[1]), Math.max(...vm.energies[1]));
+
+                vm.redraw = false;
+            }
         }
+
+        redraw();
+
+
+        // plotSvg.selectAll("circle")
+        //        .data([[50, 20]])
+        //        .enter()
+        //        .append("circle")
+        //        .attr("transform", "translate(50,10)")
+        //        .attr("cx", function(d) { return xScaler(d[0]); })
+        //        .attr("cy", function(d) { return yScaler(d[1]); })
+        //        .attr("r", 10)
+        //        .attr("fill", "blue")
+        //        .attr("stroke", "none")
+
+        // function rescale(maxX, maxY) {
+        //     xScaler.domain([0, maxX])
+        //     yScaler.domain([0, maxY])
+        //     plotSvg.select('.xaxis')
+        //            .transition()
+        //            .duration(1500)
+        //            .call(d3.axisBottom().scale(xScaler))
+        //     plotSvg.select('.yaxis')
+        //            .transition()
+        //            .duration(1500)
+        //            .call(d3.axisLeft().scale(yScaler))
+        //     plotSvg.select(".line")
+        //            .transition().duration(1500)
+        //            .attr("d", d3.line()
+        //                     .x(function(d) { return xScaler(d[0]); })
+        //                     .y(function(d) { return yScaler(d[1]); })
+        //                     .curve(d3.curveMonotoneX)
+        //             )
+        // }
         
-        setTimeout(rescale(90, 30), 2000);
+        // setTimeout(rescale(90, 30), 10000);
 
     }
 }
