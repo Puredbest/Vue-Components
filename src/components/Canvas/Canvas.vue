@@ -77,7 +77,13 @@ export default {
                 c.lineTo(points[1][0], points[1][1]);
                 c.lineTo(points[2][0], points[2][1]);
                 let b = 255*Math.pow(Math.pow(this.dx,2) + Math.pow(this.dy, 2), 0.4);
-                c.fillStyle = 'rgb('+ b + ',' + b + ',255)';
+
+                let grd = c.createLinearGradient(points[0][0],points[0][1], points[2][0], points[2][1]);
+                grd.addColorStop(0,  'cyan');
+                grd.addColorStop(1, 'rgb('+ b + ',' + b + ',255)');
+
+                //c.fillStyle = 'rgb('+ b + ',' + b + ',255)';
+                c.fillStyle = grd;
                 c.fill(); 
             }
 

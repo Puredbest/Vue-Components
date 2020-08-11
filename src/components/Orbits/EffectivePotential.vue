@@ -24,12 +24,12 @@ export default {
     mounted(){
         let vm = this;
 
-        let data2 = [[0, 0], [10, 10], [20, 40], [30, 90]];
+        //let data2 = [[0, 0], [10, 10], [20, 40], [30, 90]];
 
         let minX = 0;
         let maxX = 100;
-        let minY = -0.1;
-        let maxY = 0.1;
+        let minY = -1;
+        let maxY = 1;
         let plotWidth = document.getElementById('potentialPlot').offsetWidth;
         let plotHeight = document.getElementById('potentialPlot').offsetHeight;
         let axWidth = plotWidth * 0.8;
@@ -49,25 +49,25 @@ export default {
                         .attr("height", plotHeight)
 
 
-        function rescale(minX, maxX, minY ,maxY) {
-            xScaler.domain([minX, maxX])
-            yScaler.domain([minY, maxY])
-            plotSvg.select('.xaxis')
-                   .transition()
-                   .duration(1500)
-                   .call(d3.axisBottom().scale(xScaler))
-            plotSvg.select('.yaxis')
-                   .transition()
-                   .duration(1500)
-                   .call(d3.axisLeft().scale(yScaler))
-            plotSvg.select(".line")
-                   .transition().duration(1500)
-                   .attr("d", d3.line()
-                            .x(function(d) { return xScaler(d[0]); })
-                            .y(function(d) { return yScaler(d[1]); })
-                            .curve(d3.curveMonotoneX)
-                    )
-        }
+        // function rescale(minX, maxX, minY ,maxY) {
+        //     xScaler.domain([minX, maxX])
+        //     yScaler.domain([minY, maxY])
+        //     plotSvg.select('.xaxis')
+        //            .transition()
+        //            .duration(1500)
+        //            .call(d3.axisBottom().scale(xScaler))
+        //     plotSvg.select('.yaxis')
+        //            .transition()
+        //            .duration(1500)
+        //            .call(d3.axisLeft().scale(yScaler))
+        //     plotSvg.select(".line")
+        //            .transition().duration(1500)
+        //            .attr("d", d3.line()
+        //                     .x(function(d) { return xScaler(d[0]); })
+        //                     .y(function(d) { return yScaler(d[1]); })
+        //                     .curve(d3.curveMonotoneX)
+        //             )
+        // }
         
 
         plotSvg.append("g")
@@ -80,18 +80,18 @@ export default {
                 .attr("class", "xaxis")
                 .call(d3.axisBottom().scale(xScaler));
 
-        plotSvg.append("path")
-               .data([data2])
-               .attr("transform", "translate(50,10)")
-               .attr("class", "line")
-               .attr("stroke", "magenta")
-               .attr("stroke-width", 2)
-               .attr("fill", "none")
-               .attr("d", d3.line()
-                            .x(function(d) { return xScaler(d[0]); })
-                            .y(function(d) { return yScaler(d[1]); })
-                            .curve(d3.curveMonotoneX)
-                    )
+        // plotSvg.append("path")
+        //        .data([data2])
+        //        .attr("transform", "translate(50,10)")
+        //        .attr("class", "line")
+        //        .attr("stroke", "magenta")
+        //        .attr("stroke-width", 2)
+        //        .attr("fill", "none")
+        //        .attr("d", d3.line()
+        //                     .x(function(d) { return xScaler(d[0]); })
+        //                     .y(function(d) { return yScaler(d[1]); })
+        //                     .curve(d3.curveMonotoneX)
+        //             )
 
 
         plotSvg.append("circle")
@@ -117,7 +117,7 @@ export default {
 
                 let newAngMom = [];
                 for(let i = 0; i < vm.energies[1].length; i++){
-                    newAngMom.push([i, vm.energies[1][i]]);
+                    newAngMom.push([vm.energies[3][i], vm.energies[1][i]]);
                 }
 
                 plotSvg.selectAll("path")
@@ -133,7 +133,7 @@ export default {
                                         .curve(d3.curveMonotoneX)
                     )
                 
-                rescale(0, vm.energies[1].length, Math.min(...vm.energies[1]), Math.max(...vm.energies[1]));
+                //rescale(0, Math.max(...vm.energies[3]), Math.min(...vm.energies[1]), Math.max(...vm.energies[1]));
 
                 vm.redraw = false;
             }

@@ -140,11 +140,13 @@ export default {
                 this.pathGravPot = [];
                 this.pathAngMom = [];
                 this.pathEffPot = [];
+                this.pathRadiuses = [];
                 this.totE = 0;
 
                 for(let i = 0; i < this.pathCoords.length; i++){
                     // Taking mass of orbiting object as 1
                     this.dist = Math.pow(Math.pow(this.pathCoords[i][0]-massCentres[0][0] , 2) + Math.pow(this.pathCoords[i][1]-massCentres[0][1], 2), 0.5);
+                    this.pathRadiuses.push(this.dist);
                     this.pathGravPot.push(-initialVel*massCentres[0][2]/(this.dist*4*Math.PI));
                     this.pathAngMom.push(Math.pow(Math.pow(this.pathVels[i][0],2) + Math.pow(this.pathVels[i][1],2),0.5) * this.dist /massCentres[0][2]);
                     this.pathEffPot.push(this.pathGravPot[i] + this.pathAngMom[i]);
@@ -153,7 +155,7 @@ export default {
                 this.totE = 0.5*Math.pow(this.pathAngMom[0] ,2) + this.pathGravPot[0];
                 console.log('total energy = ',this.totE);
                 //this.totE = 0.5*(Math.pow(this.dx,2) + Math.pow(this.dy,2)) + massCentres[i][2]*Math.abs(this.dist, -1);
-                vm.$emit('energies', [this.pathAngMom, this.pathGravPot, this.pathEffPot,this.totE]);
+                vm.$emit('energies', [this.pathAngMom, this.pathGravPot, this.pathEffPot, this.pathRadiuses, this.totE]);
                 console.log('emitted');
                 
             }
